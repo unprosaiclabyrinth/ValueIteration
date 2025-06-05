@@ -60,7 +60,7 @@ struct GridWorldMDP
             Float64(mdp["discount_rate"]),                                                               # discount
             Float64(mdp["epsilon"]),                                                                     # epsilon
             Set{State}((x, y) for y in 1:nrows, x in 1:ncols if !((x, y) in blocked)),                   # states
-            [North(), East(), South(), West()]                                                           # actions
+            [West(), North(), South(), East()]                                                           # actions
         )
     end
 end
