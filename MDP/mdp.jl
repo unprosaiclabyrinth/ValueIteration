@@ -198,7 +198,7 @@ function pprint_uniform_policy(mdp::GridWorldMDP, uniform_policy::Dict{State, Se
     println(hsep)
 end
 
-function greedy_policy_from(mdp::GridWorldMDP, values::Dict{State, Float64})::Dict{State, Set{Action}}
+function greedy_policy(mdp::GridWorldMDP, values::Dict{State, Float64})::Dict{State, Set{Action}}
     policy = Dict{State, Set{Action}}()
     for s in mdp.states
         qvalues =  Dict{Action, Float64}()
@@ -215,7 +215,7 @@ function greedy_policy_from(mdp::GridWorldMDP, values::Dict{State, Float64})::Di
     return policy
 end
 
-function policy_evaluation_values(mdp::GridWorldMDP, policy::Dict{Tuple{State, Action}, Float64})::Dict{State, Float64}
+function policy_value(mdp::GridWorldMDP, policy::Dict{Tuple{State, Action}, Float64})::Dict{State, Float64}
     values = initial_values(mdp)
     while true
         new_values = Dict{State, Float64}(s => 0.0 for s in mdp.states)
@@ -242,11 +242,11 @@ function do_policy_iteration(mdp::GridWorldMDP)::Dict{State, Set{Action}}
         println("==Iteration: ", k, "==")
 
         # Policy evaluation
-        values = policy_evaluation_values(mdp, uniform_policy_to_general(mdp, policy))
+        values = policy_value(mdp, uniform_policy_to_general(mdp, policy))
         pprint_values_grid(mdp, values)
 
         # Policy improvement
-        greedy = greedy_policy_from(mdp, values)
+        greedy = greedy_policy(mdp, values)
         pprint_uniform_policy(mdp, greedy)
         
         if greedy == policy break end
@@ -295,7 +295,7 @@ function main()
     separate()
     do_policy_iteration(mdp)
     separate()
-    pistar = greedy_policy_from(mdp, do_value_iteration(mdp))
+    pistar = greedy_policy(mdp, do_value_iteration(mdp))
     pprint_uniform_policy(mdp, pistar)
 end
 
