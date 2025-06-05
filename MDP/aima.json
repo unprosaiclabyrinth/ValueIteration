@@ -1,0 +1,20 @@
+{
+  "size": {
+    "rows": 3,
+    "columns": 4
+  },
+  "walls": [[2, 2]],
+  "terminal_states": {
+    "positions": [[4, 2], [4, 3]],
+    "rewards": [-1, 1]
+  },
+  "reward": -0.04,
+  "transition_probabilities": {
+    "forward": 0.8,
+    "left": 0.1,
+    "right": 0.1,
+    "back": 0
+  },
+  "discount_rate": 1,
+  "epsilon": 0.001
+}
