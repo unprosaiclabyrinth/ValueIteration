@@ -250,9 +250,9 @@ function do_policy_iteration(mdp::GridWorldMDP)::Dict{State, Set{Action}}
         values = policy_evaluation_values(mdp, uniform_policy_to_general(mdp, policy))
         pprint_values_grid(mdp, values)
         # Policy improvement
+        if greedy == policy break end
         greedy = greedy_policy_from(mdp, values)
         pprint_uniform_policy(mdp, greedy)
-        if greedy == policy break end
         policy = greedy
     end
     return policy
