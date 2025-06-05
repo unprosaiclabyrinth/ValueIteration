@@ -144,23 +144,7 @@ uniform_policy_to_general(mdp::GridWorldMDP, policy::Dict{State, Set{Action}})::
         for a in mdp.actions
     )
 
-function policy_evaluation_values(mdp::GridWorldMDP, policy::Dict{Tuple{State, Action}, Float64})::Dict{State, Float64}
-    values = initial_values(mdp)
-    while true
-        # pprint_values_grid(mdp, values)
-        new_values = Dict{State, Float64}(s => 0.0 for s in mdp.states)
-        for s in keys(values)
-            for (a, t) in [a => t for a in mdp.actions for t in mdp.states]
-                new_values[s] += policy[(s, a)] * transition_p(mdp, s, a, t) * (
-                    reward_f(mdp, s, a, t) + (mdp.discount * values[t])
-                )
-            end
-        end
-        if new_values == values break end
-        values = new_values
-    end
-    values
-end
+separate() = println()
 
 function pprint_values_grid(mdp::GridWorldMDP, values::Dict{State, Float64})
     cellwidth = max(maximum(length(@sprintf("%.4f", v)) for v in Base.values(values)), 4) + 2
@@ -184,23 +168,6 @@ function pprint_values_grid(mdp::GridWorldMDP, values::Dict{State, Float64})
         println("|")
     end
     println(hsep)
-end
-
-function greedy_policy_from(mdp::GridWorldMDP, values::Dict{State, Float64})::Dict{State, Set{Action}}
-    policy = Dict{State, Set{Action}}()
-    for s in mdp.states
-        qvalues =  Dict{Action, Float64}()
-        for a in mdp.actions
-            qa = 0
-            for t in mdp.states
-                qa += transition_p(mdp, s, a, t) * (reward_f(mdp, s, a, t) + (mdp.discount * values[t]))
-            end
-            qvalues[a] = qa
-        end
-        maxq = maximum(Base.values(qvalues))
-        policy[s] = Set(a for (a, q) in qvalues if q == maxq)
-    end
-    return policy
 end
 
 function pprint_uniform_policy(mdp::GridWorldMDP, uniform_policy::Dict{State, Set{Action}})
@@ -231,7 +198,40 @@ function pprint_uniform_policy(mdp::GridWorldMDP, uniform_policy::Dict{State, Se
     println(hsep)
 end
 
-separate() = println()
+function greedy_policy_from(mdp::GridWorldMDP, values::Dict{State, Float64})::Dict{State, Set{Action}}
+    policy = Dict{State, Set{Action}}()
+    for s in mdp.states
+        qvalues =  Dict{Action, Float64}()
+        for a in mdp.actions
+            qa = 0
+            for t in mdp.states
+                qa += transition_p(mdp, s, a, t) * (reward_f(mdp, s, a, t) + (mdp.discount * values[t]))
+            end
+            qvalues[a] = qa
+        end
+        maxq = maximum(Base.values(qvalues))
+        policy[s] = Set(a for (a, q) in qvalues if q == maxq)
+    end
+    return policy
+end
+
+function policy_evaluation_values(mdp::GridWorldMDP, policy::Dict{Tuple{State, Action}, Float64})::Dict{State, Float64}
+    values = initial_values(mdp)
+    while true
+        # pprint_values_grid(mdp, values)
+        new_values = Dict{State, Float64}(s => 0.0 for s in mdp.states)
+        for s in keys(values)
+            for (a, t) in [a => t for a in mdp.actions for t in mdp.states]
+                new_values[s] += policy[(s, a)] * transition_p(mdp, s, a, t) * (
+                    reward_f(mdp, s, a, t) + (mdp.discount * values[t])
+                )
+            end
+        end
+        if new_values == values break end
+        values = new_values
+    end
+    values
+end
 
 function do_policy_iteration(mdp::GridWorldMDP)::Dict{State, Set{Action}}
     policy = all_random_policy(mdp)
