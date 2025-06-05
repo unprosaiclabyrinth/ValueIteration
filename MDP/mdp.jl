@@ -218,10 +218,10 @@ end
 function policy_evaluation_values(mdp::GridWorldMDP, policy::Dict{Tuple{State, Action}, Float64})::Dict{State, Float64}
     values = initial_values(mdp)
     while true
-        # pprint_values_grid(mdp, values)
         new_values = Dict{State, Float64}(s => 0.0 for s in mdp.states)
         for s in keys(values)
             for (a, t) in [a => t for a in mdp.actions for t in mdp.states]
+                # Backup using Bellman expectation equation
                 new_values[s] += policy[(s, a)] * transition_p(mdp, s, a, t) * (
                     reward_f(mdp, s, a, t) + (mdp.discount * values[t])
                 )
@@ -255,6 +255,35 @@ function do_policy_iteration(mdp::GridWorldMDP)::Dict{State, Set{Action}}
     return policy
 end
 
+function do_value_iteration(mdp::GridWorldMDP)::Dict{State, Float64}
+    values = initial_values(mdp)
+    k = 0
+    println("Starting value iteration...")
+    while true
+        k += 1
+        println("==Iteration: ", k, "==")
+        pprint_values_grid(mdp, values)
+
+        new_values = Dict{State, Float64}(s => 0.0 for s in mdp.states)
+        for s in keys(values)
+            maxq = -Inf
+            for a in mdp.actions
+                qa = 0.0
+                for t in mdp.states
+                    qa += transition_p(mdp, s, a, t) * (reward_f(mdp, s, a, t) + (mdp.discount * values[t]))
+                end
+                maxq = max(maxq, qa)
+            end
+            # Backup using Bellman optimality equation
+            new_values[s] = maxq
+        end
+
+        if new_values == values break end
+        values = new_values
+    end
+    values
+end
+
 function main()
     if length(ARGS) != 1
         println("Usage: julia mdp.jl <filename>")
@@ -264,7 +293,10 @@ function main()
     mdp = GridWorldMDP(filename)
     println(mdp)
     separate()
-    do_policy_iteration(mdp)
+    # do_policy_iteration(mdp)
+    # separate()
+    pistar = greedy_policy_from(mdp, do_value_iteration(mdp))
+    pprint_uniform_policy(mdp, pistar)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
