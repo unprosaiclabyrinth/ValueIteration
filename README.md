@@ -1,2 +1,1 @@
-# ValueIteration
-High time I got my hands dirty with this...
+# Offline Planning
